@@ -257,6 +257,10 @@ DesignBase {
     layer.enabled: true
     layer.effect: MultiEffect { shadowEnabled: true; shadowColor: lock.inkShadow(0.36); shadowBlur: 0.45; shadowVerticalOffset: 1; shadowHorizontalOffset: 0 }
   }
+  // (read-only while it takes no typing, as in the picker's live preview: Qt reads
+  // the whole clipboard into an editable field every time the clipboard changes, to
+  // know whether a paste is possible, with no size limit)
+  Binding { target: field.input; property: "readOnly"; value: true; when: !lock.inputEnabled }
 
   Text {
     anchors.centerIn: fieldBox
