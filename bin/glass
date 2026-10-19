@@ -102,7 +102,7 @@ tone() {
 # corners back: the theme's radius as last seen (Hyprland's own is Glass's while
 # Round corners is on)
 write_apply() {
-  local bg accent tooltip rounding light_ui
+  local bg accent tooltip rounding light_ui bar_shape gaps_out
   bg=$(color "$THEME/colors.toml" "" background "#16171c")
   accent=$(color "$THEME/colors.toml" "" accent "#409cff")
   tooltip=$(color "$THEME/shell.toml" tooltip background "#${bg:2}")
@@ -117,11 +117,25 @@ write_apply() {
   light_ui=$(light_theme)
   # (for the menu: it shows the tint that fits this theme)
   printf '%s\n' "$( [[ $light_ui == true ]] && echo light || echo dark )" > "$STATE/theme-mode"
+  # Only the floating-bar replacement owns a rounded, inset layer surface.
+  # Pass numeric/boolean values only; never interpolate arbitrary config as Lua.
+  gaps_out=$(hyprctl getoption -j general:gaps_out 2>/dev/null |
+    jq -r '(.custom // "") | tostring | split(" ")[0] | tonumber? // 0' 2>/dev/null) || gaps_out=0
+  [[ $gaps_out =~ ^[0-9]+([.][0-9]+)?$ ]] || gaps_out=0
+  bar_shape=$(jq -r --argjson gaps "$gaps_out" '
+    .bar | select(.id == "charlieras262.floating-bar") |
+    def bounded: type == "number" and . >= 0 and . <= 200;
+    "{ floating = true, radius = " +
+      (if (.cornerRadius | bounded) then (.cornerRadius | tostring) else "nil" end) +
+      ", gap = " + (if (.floatGap | type) == "number" then ([0, .floatGap] | max | tostring) else ($gaps | tostring) end) +
+      ", square_on_no_gaps = " + ((.noRoundedOnNoGaps != false) | tostring) + " }"
+  ' "$HOME/.config/omarchy/shell.json" 2>/dev/null) || bar_shape=""
+  [[ -n $bar_shape ]] || bar_shape="nil"
   cat > "$STATE/apply.lua.new" <<EOF_LUA
 GLASS = { card = $bg, accent = $accent, tooltip = $tooltip,
   windows = $(applied windows 0.5), menus = $(applied menus 0.5), depth = $(applied depth 0),
   tone = '$(tone)', light = $(applied light true), low_power = $(setting low_power false), light_style = $(setting light_style 1),
-  round = $(setting round false), rounding = $rounding, light_ui = $light_ui,
+  round = $(setting round false), rounding = $rounding, light_ui = $light_ui, bar_shape = $bar_shape,
   clear_terminals = $(setting clear_terminals false) }
 dofile('$DIR/glass.lua')
 EOF_LUA
