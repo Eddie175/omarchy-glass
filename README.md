@@ -33,6 +33,14 @@ Then open the **True Glass** icon in the bar and flip the switch at the top of i
 
 **Best on dark themes.** True Glass works with every Omarchy theme, square or round, dark or light, but its refraction shines most on dark ones. On a light theme, turn on **Light glass** in the True Glass menu, and set terminal apps to their light colours (in Claude Code, `/theme`).
 
+## Floating bar compatibility
+
+With `charlieras262.floating-bar` selected in `~/.config/omarchy/shell.json`,
+Glass keeps its bar shape inside the floating layer surface and follows the bar's
+`cornerRadius` override (or the window radius when omitted). It also respects
+`floatGap` and `noRoundedOnNoGaps`. The stock bar keeps its extended square shape.
+After changing these bar options, toggle Glass off and on to reapply its shape.
+
 ## Remove
 
 Turn it off with the same switch, or remove it completely with **Delete True Glass plugin…** in the menu, or:

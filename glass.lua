@@ -57,8 +57,6 @@ hg.config({
   layers = { enabled = true, live_resample_fps = G.low_power and 30 or 0 },
 })
 
--- The bar keeps Omarchy's own geometry (a full-width strip): its glass runs past
--- the screen's top and sides, so its only rim is along the bottom.
 -- Corners: the theme's own (Omarchy's stock themes are square: their rims are
 -- mitred, meeting on the diagonal like a cut glass block), or round everywhere with
 -- Round corners (windows here; the shell rounds its menus and buttons to match)
@@ -72,8 +70,18 @@ hg.config({ corner_miter = radius == 0 and 1 or 0 })
 -- a dark one), and the light card behind it is never taken for text
 hg.config({ light_ui = G.light_ui and 1 or 0 })
 
+-- Stock bars extend beyond the screen. Floating bars already have layer margins:
+-- keep their glass inside the surface and match their configured/window radius.
+local barShape = { inset = { -80, -80, 0, -80 }, radius = 0 }
+if G.bar_shape and G.bar_shape.floating then
+  local b = G.bar_shape
+  local gap = b.gap
+  local r = b.radius or radius
+  if b.square_on_no_gaps and gap == 0 then r = 0 end
+  barShape = { inset = { 0, 0, 0, 0 }, radius = r }
+end
 hg.layer("omarchy-bar", {
-  preset = "glass-bar", shape = { inset = { -80, -80, 0, -80 }, radius = 0 },
+  preset = "glass-bar", shape = barShape,
   adaptive = true, popups = true, popup_preset = "glass-tip", popup_radius = radius, mask_threshold = 0.04,
   -- the open item's accent line is drawn along the bar's top edge, as the card
   -- flows out of the bar's bottom edge there
